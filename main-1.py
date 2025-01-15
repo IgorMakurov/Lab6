@@ -9,77 +9,104 @@
 import time
 import itertools
 
-# Константы
-NUM_STATIONS = 8
-NUM_SHIFTS = 3
-TOTAL_WORKERS = 24
-NUM_WOMEN = 16
-NUM_MEN = 8
-POWER_STATIONS = [2, 5]  # Индексы станций, требующих мужчин (нумерация с 1)
+#Генерирует расписания конвейера алгоритмическим способом
+def generate_schedules_algorithmic(num_men, num_women, num_places, num_shifts, max_schedules=None):
+    print("\nАлгоритмический способ:")
+    start_time = time.time()
 
-#Проверяет мужчин на силовых станциях
-def is_valid_schedule(schedule):
-    for shift_schedule in schedule:
-        for station_index in POWER_STATIONS:
-          station = station_index - 1
-          if shift_schedule[station] == 0:
-            return False
-    return True
+    men_places = [1, 2]
+    workers = ['M' + str(i+1) for i in range(num_men)] + ['W' + str(i+1) for i in range(num_women)]
 
-#Выводит расписание
-def print_schedule(schedule):
-    for shift, shift_schedule in enumerate(schedule, 1):
-        print(f"Смена {shift}:", end=" ")
-        for station, worker_type in enumerate(shift_schedule, 1):
-            print(f"Ст{station}: {'М' if worker_type == 0 else 'Ж'}", end=" ")
-        print()
+    schedule_count = 0
+    for shift_combination in itertools.product(itertools.permutations(workers, num_places), repeat=num_shifts):
+        
+        valid_schedule = True
+        for shift_workers in shift_combination:
+            for place in men_places:
+                if shift_workers[place - 1][0] != 'M':
+                    valid_schedule = False
+                    break
+            if not valid_schedule:
+                break
+        
+        if valid_schedule:
+            schedule_count += 1
+            yield shift_combination
+            if max_schedules and schedule_count >= max_schedules:
+                break
 
-#Генерирует расписание алгоритмически
-def generate_schedules_algorithmic():
-    print("Алгоритмический метод:")
-    schedules_count = 0
-    for shift1 in generate_shift_options():
-      for shift2 in generate_shift_options():
-        for shift3 in generate_shift_options():
-          schedule = [shift1,shift2,shift3]
-          if is_valid_schedule(schedule):
-            schedules_count += 1
-            print_schedule(schedule)
-    print(f"\nВсего расписаний: {schedules_count}\n")
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"\nВсего расписаний (алгоритмический способ): {schedule_count}")
+    print(f"Время выполнения (алгоритмический способ): {elapsed_time:.4f} секунд")
+    return elapsed_time
 
-#Варианты расписания на одну смену
-def generate_shift_options():
-  for p0 in range(2):
-    for p1 in range(2):
-      for p2 in range(2):
-        for p3 in range(2):
-          for p4 in range(2):
-            for p5 in range(2):
-              for p6 in range(2):
-                for p7 in range(2):
-                  yield [p0, p1, p2, p3, p4, p5, p6, p7]
+#Генерирует расписания конвейера с помощью функций Питона.
+def generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_schedules=None):
+    print("\nС помощью функций Питона:")
+    start_time = time.time()
 
-#Считает с функциями Питона
-def generate_schedules_pythontools():
-    print("Метод с использованием функций Питона:")
-    schedules_count = 0
-    all_shift_options = list(generate_shift_options())
+    men_places = [1, 2]
+    workers = ['M' + str(i+1) for i in range(num_men)] + ['W' + str(i+1) for i in range(num_women)]
+    
+    schedule_count = 0
+    for shift_combination in itertools.product(itertools.permutations(workers, num_places), repeat=num_shifts):
+       
+        valid_schedule = True
+        for shift_workers in shift_combination:
+            if not all(shift_workers[place-1][0] == 'M' for place in men_places):
+                valid_schedule = False
+                break
 
-    for schedule in itertools.product(all_shift_options, repeat=NUM_SHIFTS):
-       if is_valid_schedule(schedule):
-           schedules_count += 1
-           print_schedule(schedule)
-    print(f"\nВсего расписаний: {schedules_count}\n")
+        if valid_schedule:
+            schedule_count += 1
+            yield shift_combination
+            if max_schedules and schedule_count >= max_schedules:
+                break
 
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"\nВсего расписаний (с помощью функций Питона): {schedule_count}")
+    print(f"Время выполнения (с помощью функций Питона): {elapsed_time:.4f} секунд")
+    return elapsed_time
 
 
-# Запуск и замер времени
-start_time = time.time()
-generate_schedules_algorithmic()
-end_time = time.time()
-print(f"Время выполнения алгоритмического метода: {end_time - start_time:.4f} секунд\n")
+if __name__ == "__main__":
+    num_men = 16
+    num_women = 8
+    num_places = 4
+    num_shifts = 3
+    max_schedules = 1000 # Ограничение на количество расписаний
 
-start_time = time.time()
-generate_schedules_pythontools()
-end_time = time.time()
-print(f"Время выполнения метода с itertools: {end_time - start_time:.4f} секунд")
+    start_time_alg = time.time()
+    for i, schedule in enumerate(generate_schedules_algorithmic(num_men, num_women, num_places, num_shifts, max_schedules)):
+        print(f"\nРасписание {i+1}:")
+        for shift_index, workers_perm in enumerate(schedule):
+            print(f"  Смена {shift_index+1}:", end=" ")
+            for j, worker in enumerate(workers_perm):
+                print(f"Место {j+1}: {worker}  ", end="")
+            print()
+    end_time_alg = time.time()
+    time_algorithmic = end_time_alg - start_time_alg
+
+    start_time_py = time.time()
+    for i, schedule in enumerate(generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_schedules)):
+        print(f"\nРасписание {i+1}:")
+        for shift_index, workers_perm in enumerate(schedule):
+            print(f"  Смена {shift_index+1}:", end=" ")
+            for j, worker in enumerate(workers_perm):
+                print(f"Место {j+1}: {worker}  ", end="")
+            print()
+    end_time_py = time.time()
+    time_pythonic = end_time_py - start_time_py
+
+
+    print("\nСравнение времени выполнения:")
+    print(f"Алгоритмическим способом: {time_algorithmic:.4f} секунд")
+    print(f"с помощью функций Питона: {time_pythonic:.4f} секунд")
+    if time_algorithmic < time_pythonic:
+        print(f"Алгоритмический способ быстрее на {time_pythonic - time_algorithmic:.4f} секунд.")
+    elif time_pythonic < time_algorithmic:
+        print(f"Способ с помощью функций Питона быстрее на {time_algorithmic - time_pythonic:.4f} секунд.")
+    else:
+        print(f"Времена выполнения способов равны.")
