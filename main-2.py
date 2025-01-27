@@ -11,6 +11,7 @@
 
 import time
 import itertools
+from collections import defaultdict
 
 # Функция для проверки ограничений по сменам
 def check_shift_limits(schedule, num_men, num_women, num_places, num_shifts):
@@ -28,7 +29,7 @@ def check_shift_limits(schedule, num_men, num_women, num_places, num_shifts):
     return True
 
 # Функция для расчета эффективности расписания
-def calculate_efficiency(schedule):
+def calculate_efficiency(schedule, num_men, num_women):
     efficiency = 0
     for shift_workers in schedule:
         for worker in shift_workers:
@@ -61,7 +62,7 @@ def generate_schedules_algorithmic(num_men, num_women, num_places, num_shifts, m
             if not valid_schedule:
                 break
         if valid_schedule and check_shift_limits(shift_combination, num_men, num_women, num_places, num_shifts):
-            efficiency = calculate_efficiency(shift_combination)
+            efficiency = calculate_efficiency(shift_combination, num_men, num_women)
             all_schedules.append(shift_combination)
             if efficiency > best_efficiency:
                 best_schedule = shift_combination
@@ -72,8 +73,10 @@ def generate_schedules_algorithmic(num_men, num_women, num_places, num_shifts, m
 
     end_time = time.time()
     elapsed_time = end_time - start_time
-    
-    return elapsed_time, all_schedules, best_schedule, schedule_count, best_efficiency
+    print(f"\nВсего расписаний (алгоритмический способ): {schedule_count}")
+    print(f"Время выполнения (алгоритмический способ): {elapsed_time:.4f} секунд")
+    print(f"Наилучшая эффективность (алгоритмический способ): {best_efficiency}")
+    return elapsed_time, all_schedules, best_schedule
 
 # Генерирует расписания конвейера с помощью функций Питона.
 def generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_schedules=None):
@@ -97,7 +100,7 @@ def generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_
                 break
         
         if valid_schedule and check_shift_limits(shift_combination, num_men, num_women, num_places, num_shifts):
-            efficiency = calculate_efficiency(shift_combination)
+            efficiency = calculate_efficiency(shift_combination, num_men, num_women)
             all_schedules.append(shift_combination)
             if efficiency > best_efficiency:
                 best_schedule = shift_combination
@@ -108,8 +111,10 @@ def generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_
 
     end_time = time.time()
     elapsed_time = end_time - start_time
-    
-    return elapsed_time, all_schedules, best_schedule, schedule_count, best_efficiency
+    print(f"\nВсего расписаний (с помощью функций Питона): {schedule_count}")
+    print(f"Время выполнения (с помощью функций Питона): {elapsed_time:.4f} секунд")
+    print(f"Наилучшая эффективность (с помощью функций Питона): {best_efficiency}")
+    return elapsed_time, all_schedules, best_schedule
 
 
 if __name__ == "__main__":
@@ -120,62 +125,49 @@ if __name__ == "__main__":
     max_schedules = 1000  # Ограничение на количество расписаний
 
     start_time_alg = time.time()
-    time_algorithmic, all_schedules_alg, best_schedule_alg, schedule_count_alg, best_efficiency_alg = generate_schedules_algorithmic(num_men, num_women, num_places, num_shifts, max_schedules)
-    
-    print("\nВсе расписания (алгоритмический способ):")
-    for i, schedule in enumerate(all_schedules_alg):
-        print(f"\nРасписание {i+1}:")
-        for shift_index, workers_perm in enumerate(schedule):
-            print(f"  Смена {shift_index+1}:", end=" ")
-            for j, worker in enumerate(workers_perm):
-                print(f"Место {j+1}: {worker}  ", end="")
-            print()
-
+    time_algorithmic, all_schedules_alg, best_schedule_alg = generate_schedules_algorithmic(num_men, num_women, num_places, num_shifts, max_schedules)
     end_time_alg = time.time()
     time_algorithmic = end_time_alg - start_time_alg
-    
-    print(f"\nВсего расписаний (алгоритмический способ): {schedule_count_alg}")
-    print(f"Время выполнения (алгоритмический способ): {time_algorithmic:.4f} секунд")
-    print(f"Наилучшая эффективность (алгоритмический способ): {best_efficiency_alg}")
-    if best_schedule_alg:
-        print(f"\nНаилучшее расписание (алгоритмический способ):")
-        for shift_index, workers_perm in enumerate(best_schedule_alg):
-             print(f"  Смена {shift_index+1}:", end=" ")
-             for j, worker in enumerate(workers_perm):
-                  print(f"Место {j+1}: {worker}  ", end="")
-             print()
-    else:
-        print("\nНе найдено ни одного корректного расписания (алгоритмический способ)")
 
 
     start_time_py = time.time()
-    time_pythonic, all_schedules_py, best_schedule_py, schedule_count_py, best_efficiency_py = generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_schedules)
-    
-    print("\nВсе расписания (с помощью функций Питона):")
-    for i, schedule in enumerate(all_schedules_py):
-         print(f"\nРасписание {i+1}:")
-         for shift_index, workers_perm in enumerate(schedule):
-            print(f"  Смена {shift_index+1}:", end=" ")
-            for j, worker in enumerate(workers_perm):
-               print(f"Место {j+1}: {worker}  ", end="")
-            print()
-            
+    time_pythonic, all_schedules_py, best_schedule_py = generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_schedules)
     end_time_py = time.time()
     time_pythonic = end_time_py - start_time_py
 
-    print(f"\nВсего расписаний (с помощью функций Питона): {schedule_count_py}")
-    print(f"Время выполнения (с помощью функций Питона): {time_pythonic:.4f} секунд")
-    print(f"Наилучшая эффективность (с помощью функций Питона): {best_efficiency_py}")
-    if best_schedule_py:
-        print(f"\nНаилучшее расписание (с помощью функций Питона):")
-        for shift_index, workers_perm in enumerate(best_schedule_py):
-           print(f"  Смена {shift_index+1}:", end=" ")
-           for j, worker in enumerate(workers_perm):
-                print(f"Место {j+1}: {worker}  ", end="")
-           print()
+    output_lines_alg = []
+    output_lines_alg.append("\nВсе расписания (алгоритмический способ):")
+    for i, schedule in enumerate(all_schedules_alg):
+        output_lines_alg.append(f"\nРасписание {i+1}:")
+        for shift_index, workers_perm in enumerate(schedule):
+             output_lines_alg.append(f"  Смена {shift_index+1}:" + " ".join(f"Место {j+1}: {worker}  " for j, worker in enumerate(workers_perm)))
+    if best_schedule_alg:
+        output_lines_alg.append(f"\nНаилучшее расписание (алгоритмический способ):")
+        for shift_index, workers_perm in enumerate(best_schedule_alg):
+            output_lines_alg.append(f"  Смена {shift_index+1}:" + " ".join(f"Место {j+1}: {worker}  " for j, worker in enumerate(workers_perm)))
     else:
-        print("\nНе найдено ни одного корректного расписания (с помощью функций Питона)")
-        
+        output_lines_alg.append("\nНе найдено ни одного корректного расписания (алгоритмический способ)")
+
+    print("\n".join(output_lines_alg))
+
+
+
+    output_lines_py = []
+    output_lines_py.append("\nВсе расписания (с помощью функций Питона):")
+    for i, schedule in enumerate(all_schedules_py):
+        output_lines_py.append(f"\nРасписание {i+1}:")
+        for shift_index, workers_perm in enumerate(schedule):
+             output_lines_py.append(f"  Смена {shift_index+1}:" + " ".join(f"Место {j+1}: {worker}  " for j, worker in enumerate(workers_perm)))
+    if best_schedule_py:
+        output_lines_py.append(f"\nНаилучшее расписание (с помощью функций Питона):")
+        for shift_index, workers_perm in enumerate(best_schedule_py):
+             output_lines_py.append(f"  Смена {shift_index+1}:" + " ".join(f"Место {j+1}: {worker}  " for j, worker in enumerate(workers_perm)))
+    else:
+        output_lines_py.append("\nНе найдено ни одного корректного расписания (с помощью функций Питона)")
+
+    print("\n".join(output_lines_py))
+
+
     print("\nСравнение времени выполнения:")
     print(f"Алгоритмическим способом: {time_algorithmic:.4f} секунд")
     print(f"с помощью функций Питона: {time_pythonic:.4f} секунд")
