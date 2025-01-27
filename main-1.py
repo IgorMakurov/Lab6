@@ -18,6 +18,7 @@ def generate_schedules_algorithmic(num_men, num_women, num_places, num_shifts, m
     workers = ['M' + str(i+1) for i in range(num_men)] + ['W' + str(i+1) for i in range(num_women)]
 
     schedule_count = 0
+    all_schedules = []
     for shift_combination in itertools.product(itertools.permutations(workers, num_places), repeat=num_shifts):
         
         valid_schedule = True
@@ -31,7 +32,7 @@ def generate_schedules_algorithmic(num_men, num_women, num_places, num_shifts, m
         
         if valid_schedule:
             schedule_count += 1
-            yield shift_combination
+            all_schedules.append(shift_combination)
             if max_schedules and schedule_count >= max_schedules:
                 break
 
@@ -39,7 +40,7 @@ def generate_schedules_algorithmic(num_men, num_women, num_places, num_shifts, m
     elapsed_time = end_time - start_time
     print(f"\nВсего расписаний (алгоритмический способ): {schedule_count}")
     print(f"Время выполнения (алгоритмический способ): {elapsed_time:.4f} секунд")
-    return elapsed_time
+    return elapsed_time, all_schedules
 
 #Генерирует расписания конвейера с помощью функций Питона.
 def generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_schedules=None):
@@ -50,6 +51,7 @@ def generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_
     workers = ['M' + str(i+1) for i in range(num_men)] + ['W' + str(i+1) for i in range(num_women)]
     
     schedule_count = 0
+    all_schedules = []
     for shift_combination in itertools.product(itertools.permutations(workers, num_places), repeat=num_shifts):
        
         valid_schedule = True
@@ -60,7 +62,7 @@ def generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_
 
         if valid_schedule:
             schedule_count += 1
-            yield shift_combination
+            all_schedules.append(shift_combination)
             if max_schedules and schedule_count >= max_schedules:
                 break
 
@@ -68,7 +70,7 @@ def generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_
     elapsed_time = end_time - start_time
     print(f"\nВсего расписаний (с помощью функций Питона): {schedule_count}")
     print(f"Время выполнения (с помощью функций Питона): {elapsed_time:.4f} секунд")
-    return elapsed_time
+    return elapsed_time, all_schedules
 
 
 if __name__ == "__main__":
@@ -79,26 +81,34 @@ if __name__ == "__main__":
     max_schedules = 1000 # Ограничение на количество расписаний
 
     start_time_alg = time.time()
-    for i, schedule in enumerate(generate_schedules_algorithmic(num_men, num_women, num_places, num_shifts, max_schedules)):
-        print(f"\nРасписание {i+1}:")
-        for shift_index, workers_perm in enumerate(schedule):
-            print(f"  Смена {shift_index+1}:", end=" ")
-            for j, worker in enumerate(workers_perm):
-                print(f"Место {j+1}: {worker}  ", end="")
-            print()
+    time_algorithmic, all_schedules_alg = generate_schedules_algorithmic(num_men, num_women, num_places, num_shifts, max_schedules)
     end_time_alg = time.time()
     time_algorithmic = end_time_alg - start_time_alg
 
+
     start_time_py = time.time()
-    for i, schedule in enumerate(generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_schedules)):
-        print(f"\nРасписание {i+1}:")
-        for shift_index, workers_perm in enumerate(schedule):
-            print(f"  Смена {shift_index+1}:", end=" ")
-            for j, worker in enumerate(workers_perm):
-                print(f"Место {j+1}: {worker}  ", end="")
-            print()
+    time_pythonic, all_schedules_py = generate_schedules_pythonic(num_men, num_women, num_places, num_shifts, max_schedules)
     end_time_py = time.time()
     time_pythonic = end_time_py - start_time_py
+
+    output_lines_alg = []
+    output_lines_alg.append("\nВсе расписания (алгоритмический способ):")
+    for i, schedule in enumerate(all_schedules_alg):
+         output_lines_alg.append(f"\nРасписание {i+1}:")
+         for shift_index, workers_perm in enumerate(schedule):
+            output_lines_alg.append(f"  Смена {shift_index+1}:" + " ".join(f"Место {j+1}: {worker}  " for j, worker in enumerate(workers_perm)))
+
+    print("\n".join(output_lines_alg))
+    
+    output_lines_py = []
+    output_lines_py.append("\nВсе расписания (с помощью функций Питона):")
+    for i, schedule in enumerate(all_schedules_py):
+        output_lines_py.append(f"\nРасписание {i+1}:")
+        for shift_index, workers_perm in enumerate(schedule):
+            output_lines_py.append(f"  Смена {shift_index+1}:" + " ".join(f"Место {j+1}: {worker}  " for j, worker in enumerate(workers_perm)))
+    
+    print("\n".join(output_lines_py))
+
 
 
     print("\nСравнение времени выполнения:")
